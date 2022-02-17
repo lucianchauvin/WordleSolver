@@ -25,7 +25,6 @@ class Main {
       e.printStackTrace();
     }
     Scanner myObj = new Scanner(System.in);
-    System.out.println(getOnlineScore("hello"));
     while(true){
       System.out.println("--------------------------------------------------");
 
@@ -179,7 +178,7 @@ class Main {
       }
       score += frequencyOfLetterInAllWords(wordbank, c);
     }
-    if(wordbank.size() < 150){
+    if(wordbank.size() < 200){
       return score*getOnlineScore(s);
     }
     return score;
