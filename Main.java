@@ -6,9 +6,15 @@ import java.text.DecimalFormat;
 import java.math.RoundingMode;
 import java.io.*;
 import java.util.*;
+import java.util.List;
+
+import javax.sound.midi.Soundbank;
+
+import java.net.*;
+import java.io.*;
 
 class Main {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     ArrayList<String> wordbank = new ArrayList<String>();
     try (BufferedReader br = new BufferedReader(new FileReader("wordbank.txt"))) {
       String sCurrentLine;
@@ -19,6 +25,7 @@ class Main {
       e.printStackTrace();
     }
     Scanner myObj = new Scanner(System.in);
+    System.out.println(getOnlineScore("hello"));
     while(true){
       System.out.println("--------------------------------------------------");
 
@@ -62,7 +69,21 @@ class Main {
        }
       }
     return newwordbank;
-  }  
+  } 
+  public static int getOnlineScore(String word) throws IOException{
+    URL yahoo = new URL("https://api.phrasefinder.io/search?corpus=eng-us&query=" + word + "&topk=1&format=tsv");
+    URLConnection yc = yahoo.openConnection();
+    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(
+                            yc.getInputStream()));
+    String inputLine = in.readLine();
+    if(inputLine != null){
+      String[] currencies = inputLine.split("\t");
+      return Integer.parseInt(currencies[1]);
+    } else {
+      return 0;
+    }
+  }
   public static ArrayList<String> wordsNOTContainingLetter(ArrayList<String> wordbank, char l){
       ArrayList<String> newwordbank = new ArrayList<String>();
       for(int x = 0; x < wordbank.size(); x++){
@@ -144,7 +165,8 @@ class Main {
     }
   }
 
-  public static double score(ArrayList<String> wordbank, String s){
+  public static double score(ArrayList<String> wordbank, String s) throws IOException{
+    wordbank = removeDupes(wordbank);
     double score = 0.0;
     for(char c: s.toCharArray()){
       int count = 0;
@@ -156,6 +178,9 @@ class Main {
         score -= frequencyOfLetterInAllWords(wordbank, c)*1.2;
       }
       score += frequencyOfLetterInAllWords(wordbank, c);
+    }
+    if(wordbank.size() < 150){
+      return score*getOnlineScore(s);
     }
     return score;
   }
@@ -172,8 +197,33 @@ class Main {
         // Return the reversed arraylist
         return alist;
     }
-
-  public static ArrayList<String> returnPossibles(ArrayList<String> wordbank, String knownLetterAndPossition, String knownLetter, String wrongletter){
+  public static ArrayList<String> removeDupes(ArrayList<String> alist){
+    ArrayList<String> newlist = new ArrayList<String>();
+    newlist.add(alist.get(0));
+    for(String s: alist){
+      for(String a: newlist){
+        if(!s.equals(a)){
+          newlist.add(s);
+          break;
+        }
+      }
+    }
+    return newlist;
+  }
+  public static ArrayList<Pair> removeDupes2(ArrayList<Pair> alist){
+    ArrayList<Pair> newlist = new ArrayList<Pair>();
+    newlist.add(alist.get(0));
+    for(Pair s: alist){
+      for(Pair a: newlist){
+        if(!s.getWord().equals(a.getWord())){
+          newlist.add(s);
+          break;
+        }
+      }
+    }
+    return newlist;
+  }
+  public static ArrayList<String> returnPossibles(ArrayList<String> wordbank, String knownLetterAndPossition, String knownLetter, String wrongletter) throws IOException{
     ArrayList<String> myREALwords = new ArrayList<String>();
     ArrayList<String> mywords = new ArrayList<String>();
     ArrayList<String> myNOTwords = new ArrayList<String>();
@@ -277,13 +327,22 @@ class Main {
         removedWrong.add(s);
       }
     }
+    removedWrong = removeDupes(removedWrong);
     for(String a: removedWrong){
       scores.add(new Pair(a, score(wordbank, a)));
     }
     Collections.sort(scores);
     System.out.println(scores);
-    scores = reverseArrayList(scores); 
-    System.out.println("Highest scored guess: " + scores.get(0));
+    scores = reverseArrayList(scores);
+    double best = 0;
+    String bestword = "";
+    for(Pair p: scores){
+      if(p.getValue() > best){
+        best = p.getValue();
+        bestword = p.getWord();
+      }
+    }
+    System.out.println("Highest scored guess: " + bestword + " with a score of: " + best);
 
 
     return removedWrong;
