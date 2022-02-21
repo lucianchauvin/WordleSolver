@@ -328,7 +328,7 @@ class Main {
     }
     removedWrong = removeDupes(removedWrong);
     for(String a: removedWrong){
-      scores.add(new Pair(a, score(wordbank, a)));
+      scores.add(new Pair(a, score(removedWrong, a)));
     }
     Collections.sort(scores);
     System.out.println(scores);
