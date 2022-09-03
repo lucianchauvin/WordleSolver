@@ -1,4 +1,6 @@
 # WordleSolver
-Will probably solve the wordle.
-<br/>
+
+<br>
 ![Alt Text](https://github.com/lucianchauvin/WordleSolver/blob/master/demo.gif)
+<br>
+Will probably solve the wordle.
